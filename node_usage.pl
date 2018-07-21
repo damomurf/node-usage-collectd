@@ -69,6 +69,7 @@ if ($ARGV[0]) {
 
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
+$ua->agent("NodeUsageCollectdPlugin/0.0.0 (https://github.com/damomurf/node-usage-collectd)");
 
 my $usage_href = undef;
 
