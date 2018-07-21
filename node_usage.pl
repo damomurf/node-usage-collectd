@@ -126,40 +126,50 @@ $| = 1;
 
 while (1) {
 
-    my $req = HTTP::Request->new(GET => $API_BASE . $usage_href);
-    $req->authorization_basic($username, $password);
+    my $attempts = 2;
+    while ($attempts gt 0) {
+        my $req = HTTP::Request->new(GET => $API_BASE . $usage_href);
+        $req->authorization_basic($username, $password);
+        $attempts--;
 
-    my $response = $ua->request($req);
+        my $response = $ua->request($req);
 
-    if ($response->is_success) {
+        if ($response->is_success) {
 
-        my $xml = $response->decoded_content; 
+            my $xml = $response->decoded_content;
 
-        my $ref = XMLin($xml);
-        my $quota = $ref->{api}->{traffic}->{quota};
-        my $usage = $ref->{api}->{traffic}->{content};
-        my $rollover = $ref->{api}->{traffic}->{rollover}; # yyyy-mm-dd
+            my $ref = XMLin($xml);
+            my $quota = $ref->{api}->{traffic}->{quota};
+            my $usage = $ref->{api}->{traffic}->{content};
+            my $rollover = $ref->{api}->{traffic}->{rollover}; # yyyy-mm-dd
 
-        my ($rollover_year, $rollover_month, $rollover_day) = $rollover =~ /^(\d{4})-(\d{2})-(\d{2})\z/;
-        
-        my $start_year = $rollover_year;
-        my $start_month = $rollover_month - 1;
-        my $start_day = $rollover_day;
+            my ($rollover_year, $rollover_month, $rollover_day) = $rollover =~ /^(\d{4})-(\d{2})-(\d{2})\z/;
 
-        my $rollover_time = POSIX::mktime(0,0,0,$rollover_day, $rollover_month-1,$rollover_year-1900);
-        my $start_time = POSIX::mktime(0,0,0,$start_day, $start_month-1,$start_year-1900);
-        my $now = time();
+            my $start_year = $rollover_year;
+            my $start_month = $rollover_month - 1;
+            my $start_day = $rollover_day;
 
-        my $quota_per_sec = $quota / ($rollover_time - $start_time);
-        my $target = $quota_per_sec * ($now - $start_time);
+            my $rollover_time = POSIX::mktime(0,0,0,$rollover_day, $rollover_month-1,$rollover_year-1900);
+            my $start_time = POSIX::mktime(0,0,0,$start_day, $start_month-1,$start_year-1900);
+            my $now = time();
 
-        print "PUTVAL \"${HOSTNAME}/usage/gauge-quota\" interval=" . $INTERVAL . " N:" . $quota . "\n";
-        print "PUTVAL \"${HOSTNAME}/usage/gauge-target\" interval=" . $INTERVAL . " N:" . int($target) . "\n";
-        print "PUTVAL \"${HOSTNAME}/usage/gauge-used\" interval=" . $INTERVAL . " N:" . $usage . "\n";
+            my $quota_per_sec = $quota / ($rollover_time - $start_time);
+            my $target = $quota_per_sec * ($now - $start_time);
 
-    }
-    else {
-        print STDERR $response->status_line;
+            print "PUTVAL \"${HOSTNAME}/usage/gauge-quota\" interval=" . $INTERVAL . " N:" . $quota . "\n";
+            print "PUTVAL \"${HOSTNAME}/usage/gauge-target\" interval=" . $INTERVAL . " N:" . int($target) . "\n";
+            print "PUTVAL \"${HOSTNAME}/usage/gauge-used\" interval=" . $INTERVAL . " N:" . $usage . "\n";
+            print STDERR "Wrote: quota=${quota} target=${target} usage=${usage}\n";
+
+            # Success, we don't need to try any more.
+            $attempts = 0;
+        }
+        else {
+            # We failed, so wait a few seconds then try again
+            print STDERR $response->status_line
+                . ": $attempts attempts remain.\n";
+            sleep 3;
+        }
     }
 
     next_poll_delay();
