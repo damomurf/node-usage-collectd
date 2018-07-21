@@ -169,7 +169,7 @@ while (1) {
             # We failed, so wait a few seconds then try again
             print STDERR $response->status_line
                 . ": $attempts attempts remain.\n";
-            sleep 3;
+            sleep 10 + ((2 - $attempts) * 10);
         }
     }
 
