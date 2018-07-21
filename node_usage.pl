@@ -70,8 +70,25 @@ $ua->timeout(10);
 
 my $usage_href = undef;
 
-unless (-e $CACHE_FILE) {
+if (-e $CACHE_FILE) {
+    # Read the cached HREF
+    print STDERR "Reading cached service url\n";
 
+    open(FCACHE, $datadir . '/' . $CACHE_FILE);
+    while (<FCACHE>) {
+        chomp;
+        $usage_href = $_;
+    }
+
+    if (not defined($usage_href)) {
+        print STDERR "Cache is invalid\n";
+        unlink($CACHE_FILE);
+    } else {
+        print STDERR "Cached href: $usage_href\n";
+    }
+}
+
+if (not defined($usage_href)) {
     # Cache the Usage HREF
     print STDERR "Caching new service url\n";
 
@@ -89,24 +106,14 @@ unless (-e $CACHE_FILE) {
         $usage_href = $service->{'href'} . '/usage';
 
         open(FCACHE, '>'. $datadir . '/' . $CACHE_FILE);
-        
+
         print FCACHE $usage_href . "\n";
         close(FCACHE);
 
     }
-
-} else {
-
-    # Read the cached HREF
-    print STDERR "Reading cached service url\n";
-
-   open(FCACHE, $datadir . '/' . $CACHE_FILE);
-   while (<FCACHE>) {
-       chomp;
-       $usage_href = $_;
-   }
-
 }
+
+defined($usage_href) or die("Could not retrieve usage URI");
 
 #Enable output buffer auto flush
 $| = 1;
@@ -117,7 +124,7 @@ while (1) {
     $req->authorization_basic($username, $password);
 
     my $response = $ua->request($req);
-     
+
     if ($response->is_success) {
 
         my $xml = $response->decoded_content; 
@@ -151,4 +158,3 @@ while (1) {
 
     sleep $INTERVAL;
 }
-
