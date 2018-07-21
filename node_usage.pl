@@ -37,6 +37,8 @@ use Data::Dumper;
 my $CACHE_FILE = '.service_cache';
 my $HOSTNAME = $ENV->{'COLLECTD_HOSTNAME'} ? $ENV->{'COLLECTD_HOSTNAME'} : 'localhost';
 my $INTERVAL = 1800;
+my $ATTEMPTS = 5;
+my $BACKOFF_TIME = 60;
 my $API_BASE = 'https://customer-webtools-api.internode.on.net';
 my $SERVICE_INFO_PATH = '/api/v1.5/';
 
@@ -126,7 +128,7 @@ $| = 1;
 
 while (1) {
 
-    my $attempts = 2;
+    my $attempts = $ATTEMPTS;
     while ($attempts gt 0) {
         my $req = HTTP::Request->new(GET => $API_BASE . $usage_href);
         $req->authorization_basic($username, $password);
@@ -169,7 +171,7 @@ while (1) {
             # We failed, so wait a few seconds then try again
             print STDERR $response->status_line
                 . ": $attempts attempts remain.\n";
-            sleep (3 - $attempts) * 60;
+            sleep ($ATTEMPTS - $attempts) * $BACKOFF_TIME;
         }
     }
 
