@@ -36,7 +36,7 @@ use Data::Dumper;
 
 my $CACHE_FILE = '.service_cache';
 my $HOSTNAME = $ENV->{'COLLECTD_HOSTNAME'} ? $ENV->{'COLLECTD_HOSTNAME'} : 'localhost';
-my $INTERVAL = 300;
+my $INTERVAL = 1800;
 my $API_BASE = 'https://customer-webtools-api.internode.on.net';
 my $SERVICE_INFO_PATH = '/api/v1.5/';
 
@@ -169,7 +169,7 @@ while (1) {
             # We failed, so wait a few seconds then try again
             print STDERR $response->status_line
                 . ": $attempts attempts remain.\n";
-            sleep 10 + ((2 - $attempts) * 10);
+            sleep (3 - $attempts) * 60;
         }
     }
 
