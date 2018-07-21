@@ -159,6 +159,7 @@ while (1) {
             print "PUTVAL \"${HOSTNAME}/usage/gauge-quota\" interval=" . $INTERVAL . " N:" . $quota . "\n";
             print "PUTVAL \"${HOSTNAME}/usage/gauge-target\" interval=" . $INTERVAL . " N:" . int($target) . "\n";
             print "PUTVAL \"${HOSTNAME}/usage/gauge-used\" interval=" . $INTERVAL . " N:" . $usage . "\n";
+            print "PUTVAL \"${HOSTNAME}/usage/gauge-remain\" interval=" . $INTERVAL . " N:" . ( $quota - $usage ) ."\n";
             print STDERR "Wrote: quota=${quota} target=${target} usage=${usage}\n";
 
             # Success, we don't need to try any more.
