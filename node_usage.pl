@@ -78,21 +78,20 @@ sub next_poll_delay() {
     sleep $delay;
 }
 
-if (-e $CACHE_FILE) {
+if (-r "$datadir/$CACHE_FILE") {
     # Read the cached HREF
     print STDERR "Reading cached service url\n";
 
-    open(FCACHE, $datadir . '/' . $CACHE_FILE);
-    while (<FCACHE>) {
-        chomp;
-        $usage_href = $_;
-    }
+    if (open(FCACHE, "<$datadir/$CACHE_FILE")) {
+        $usage_href = <FCACHE>;
+        chomp $usage_href;
 
-    if (not defined($usage_href)) {
-        print STDERR "Cache is invalid\n";
-        unlink($CACHE_FILE);
-    } else {
-        print STDERR "Cached href: $usage_href\n";
+        if (not defined($usage_href)) {
+            print STDERR "Cache is invalid\n";
+            unlink($CACHE_FILE) or die ("Could not delete cache file");
+        } else {
+            print STDERR "Cached href: $usage_href\n";
+        }
     }
 }
 
@@ -106,18 +105,17 @@ if (not defined($usage_href)) {
     my $response = $ua->request($req);
 
     if ($response->is_success) {
-
         my $xml = $response->decoded_content; 
         my $ref = XMLin($xml);
 
         my $service = $ref->{'api'}->{'services'}->{'service'};
         $usage_href = $service->{'href'} . '/usage';
 
-        open(FCACHE, '>'. $datadir . '/' . $CACHE_FILE);
+        open(FCACHE, '>'. $datadir . '/' . $CACHE_FILE)
+            or die("Failed to write cache");
 
-        print FCACHE $usage_href . "\n";
-        close(FCACHE);
-
+        print FCACHE $usage_href . "\n" or die("Failed to write cache file");
+        close(FCACHE) or die("Failed to write cache file");
     }
 }
 
