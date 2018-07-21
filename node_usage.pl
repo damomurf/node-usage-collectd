@@ -171,7 +171,7 @@ while (1) {
             # We failed, so wait a few seconds then try again
             print STDERR $response->status_line
                 . ": $attempts attempts remain.\n";
-            sleep ($ATTEMPTS - $attempts) * $BACKOFF_TIME;
+            sleep (($ATTEMPTS - $attempts) * $BACKOFF_TIME);
         }
     }
 
