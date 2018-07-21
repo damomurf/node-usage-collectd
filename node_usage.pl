@@ -36,7 +36,7 @@ use Data::Dumper;
 
 my $CACHE_FILE = '.service_cache';
 my $HOSTNAME = $ENV->{'COLLECTD_HOSTNAME'} ? $ENV->{'COLLECTD_HOSTNAME'} : 'localhost';
-my $INTERVAL = 1800;
+my $INTERVAL = 3600;
 my $ATTEMPTS = 5;
 my $BACKOFF_TIME = 60;
 my $API_BASE = 'https://customer-webtools-api.internode.on.net';
