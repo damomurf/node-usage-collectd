@@ -70,6 +70,14 @@ $ua->timeout(10);
 
 my $usage_href = undef;
 
+# Next poll delay
+sub next_poll_delay() {
+    my $now = time();
+    my $delay = $INTERVAL - ($now % $INTERVAL);
+    print STDERR "Sleeping $delay\n";
+    sleep $delay;
+}
+
 if (-e $CACHE_FILE) {
     # Read the cached HREF
     print STDERR "Reading cached service url\n";
@@ -156,5 +164,5 @@ while (1) {
         print STDERR $response->status_line;
     }
 
-    sleep $INTERVAL;
+    next_poll_delay();
 }
