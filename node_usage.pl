@@ -47,7 +47,7 @@ my $datadir = undef;
 if ($ARGV[0]) {
     $datadir = $ARGV[0];
     print STDERR "Reading auth config from data dir: ${datadir}\n";
-    open(DDIR, $datadir . '/.auth');
+    open(DDIR, $datadir . '/.auth') or die("Failed to open .auth file");
     while (<DDIR>) {
         chomp;
         my $line = $_;
@@ -58,7 +58,7 @@ if ($ARGV[0]) {
             ($password) = $line =~ /password:(.*)/;
         }
     }
-    close(DDIR);
+    close(DDIR) or die("Failed to close .auth file");
 } else {
   print "Usage:\n";
   print "node_usage.pl <data directory>\n\n";
